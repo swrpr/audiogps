@@ -5,6 +5,7 @@ function App() {
   const [decibelLevel, setDecibelLevel] = useState(0);
   const [maxDecibelLevel, setMaxDecibelLevel] = useState(0);
   const [history, setHistory] = useState([]);
+  const [decibelLevels, setDecibelLevels] = useState([]);
 
   // Capture the audio from the microphone
   useEffect(() => {
@@ -52,6 +53,7 @@ function App() {
 
           // Update the state with the new decibel level
           setDecibelLevel(decibelLevel);
+          setDecibelLevels([...decibelLevels, decibelLevel]);
 
           // Update the maximum decibel level
           if (decibelLevel > maxDecibelLevel) {
@@ -70,47 +72,61 @@ function App() {
 
   // Function to handle the "Capture" button click
   const handleCaptureClick = () => {
-       // Capture the GPS location and add a new measurement to the history
+    // Calculate the average decibel level for the 10 second data
+    const sum = decibelLevels.reduce((acc, val) => acc + val, 0);
+    const avgDecibelLevel = sum / decibelLevels.length;
+
+    // Reset the decibel levels array
+    setDecibelLevels([]);
+
+    // Capture the GPS location and add a new measurement to the history
     if ('geolocation' in navigator) {
       navigator.geolocation.getCurrentPosition(position => {
         const measurement = {
           date: new Date(),
           latitude: position.coords.latitude,
           longitude: position.coords.longitude,
-          decibelLevel: decibelLevel
+          decibelLevel: avgDecibelLevel,
+          maxDecibelLevel: maxDecibelLevel
         };
         setHistory([...history, measurement]);
       });
     }
   };
 
-  return (
-    <div>
-      <div>Decibel Level: {decibelLevel.toFixed(2)} dB</div>
-      <div>Maximum Decibel Level: {maxDecibelLevel.toFixed(2)} dB</div>
-      <button onClick={handleCaptureClick}>Capture</button>
-      <table>
-        <thead>
-          <tr>
-            <th>Date</th>
-            <th>Latitude</th>
-            <th>Longitude</th>
-            <th>Decibel Level</th>
+ return (
+  <div style={{ background: 'black', color: 'lime' }}>
+    <div style={{ fontSize: '32px' }}>Decibel Level: {decibelLevel.toFixed(2)} dB</div>
+    <div style={{ fontSize: '32px' }}>Maximum Decibel Level: {maxDecibelLevel.toFixed(2)} dB</div>
+    <button style={{ fontSize: '32px', background: 'lime', color: 'black' }} onClick={handleCaptureClick}>Capture</button>
+    <table style={{ border: '2px solid lime' }}>
+      <thead>
+        <tr>
+          <th style={{ border: '2px solid lime', fontSize: '32px' }}>Date</th>
+          <th style={{ border: '2px solid lime', fontSize: '32px' }}>Latitude</th>
+          <th style={{ border: '2px solid lime', fontSize: '32px' }}>Longitude</th>
+          <th style={{ border: '2px solid lime', fontSize: '32px' }}>Decibel Level</th>
+          <th style={{ border: '2px solid lime', fontSize: '32px' }}>Max Decibel Level</th>
+        </tr>
+      </thead>
+      <tbody>
+        {history.map(measurement => (
+          <tr key={measurement.date.toISOString()}>
+            <td style={{ border: '2px solid lime', fontSize: '32px' }}>{measurement.date.toLocaleString()}</td>
+            <td style={{ border: '2px solid lime', fontSize: '32px' }}>{measurement.latitude.toFixed(4)}</td>
+            <td style={{ border: '2px solid lime', fontSize: '32px' }}>{measurement.longitude.toFixed(4)}</td>
+            <td style={{ border: '2px solid lime', fontSize: '32px' }}>{measurement.decibelLevel.toFixed(2)} dB</td>
+            <td style={{ border: '2px solid lime', fontSize: '32px' }}>{measurement.maxDecibelLevel.toFixed(2)} dB</td>
           </tr>
-        </thead>
-        <tbody>
-          {history.map(measurement => (
-            <tr key={measurement.date.toISOString()}>
-              <td>{measurement.date.toString()}</td>
-              <td>{measurement.latitude}</td>
-              <td>{measurement.longitude}</td>
-              <td>{measurement.decibelLevel.toFixed(2)}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
+        ))}
+      </tbody>
+    </table>
+    <footer>
+      <a href="doc.x">🔔🔇🛰️📍 ding dong lat long</a>
+    </footer>
+  </div>
+);
+
 }
 
 export default App;

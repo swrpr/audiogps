@@ -1,5 +1,83 @@
-main {
-  text-align: center;
-  vertical-align: center;
-  line-height: 100vh
+body {
+  background: #000 url(bg.gif) center/cover;
+  color: #0f0;
+  font-family: 'Press Start 2P', sans-serif;
+}
+
+button {
+  background: #0f0;
+  border: none;
+  color: #000;
+  cursor: pointer;
+  font-size: 24px;
+  padding: 16px 32px;
+}
+
+button:hover {
+  background: #0ff;
+}
+
+button:active {
+  background: #00f;
+  color: #fff;
+}
+
+table {
+  border-collapse: collapse;
+  border: 2px solid #0f0;
+  font-size: 24px;
+  margin: 32px auto;
+  width: 80%;
+}
+
+td, th {
+  border: 2px solid #0f0;
+  padding: 16px;
+}
+
+footer {
+  align-items: center;
+  display: flex;
+  font-size: 24px;
+  justify-content: center;
+  margin: 32px 0;
+}
+
+footer a {
+  color: #0f0;
+  text-decoration: none;
+}
+
+footer a:hover {
+  color: #0ff;
+}
+
+footer img {
+  height: 48px;
+  margin-left: 16px;
+  width: 48px;
+}
+
+.noise {
+  background: #000 url(noise.png) center/cover;
+  height: 100%;
+  left: 0;
+  position: fixed;
+  top: 0;
+  width: 100%;
+  z-index: -1;
+}
+
+.waveform {
+  height: 128px;
+  margin: 32px auto;
+  width: 80%;
+}
+
+.waveform canvas {
+  background: #000;
+  border: 2px solid #0f0;
+  box-sizing: border-box;
+  height: 100%;
+  width: 100%;
 }
