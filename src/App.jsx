@@ -94,53 +94,40 @@ function App() {
     }
   };
 
-return (
-  <div className="retro-container">
-    <div className="decibel-level">Decibel Level: {decibelLevel.toFixed(2)} dB</div>
-    <div className="max-decibel-level">Maximum Decibel Level: {maxDecibelLevel.toFixed(2)} dB</div>
-    <button className="capture-button" onClick={handleCaptureClick}>
-      <i className="fas fa-microphone-alt"></i>
-      Capture
-    </button>
-    <div className="waveform">
-      {decibelLevels.map((level, index) => (
-        <div
-          key={index}
-          className="waveform-bar"
-          style={{ height: `${level}%` }}
-        ></div>
-      ))}
-    </div>
-    <table className="history-table">
+ return (
+  <div style={{ background: 'black', color: 'lime' }}>
+    <div style={{ fontSize: '12px' }}>🔉 Decibel Level: {decibelLevel.toFixed(2)} dB</div>
+    <div style={{ fontSize: '12px' }}>🔊 Maximum Decibel Level: {maxDecibelLevel.toFixed(2)} dB</div>
+    <button style={{ fontSize: '12px', background: 'lime', color: 'black' }} onClick={handleCaptureClick}>📢 Capture</button>
+    
+    <table style={{ border: '1px solid lime' }}>
       <thead>
         <tr>
-          <th>Date</th>
-          <th>Latitude</th>
-          <th>Longitude</th>
-          <th>Decibel Level</th>
-          <th>Max Decibel Level</th>
+          <th style={{ border: '1px solid lime', fontSize: '12px' }}>Date</th>
+          <th style={{ border: '1px solid lime', fontSize: '12px' }}>Latitude</th>
+          <th style={{ border: '1px solid lime', fontSize: '12px' }}>Longitude</th>
+          <th style={{ border: '1px solid lime', fontSize: '12px' }}>Decibel Level</th>
+          <th style={{ border: '1px solid lime', fontSize: '12px' }}>Max Decibel Level</th>
         </tr>
       </thead>
       <tbody>
         {history.map(measurement => (
           <tr key={measurement.date.toISOString()}>
-            <td>{measurement.date.toLocaleString()}</td>
-            <td>{measurement.latitude.toFixed(4)}</td>
-            <td>{measurement.longitude.toFixed(4)}</td>
-            <td>{measurement.decibelLevel.toFixed(2)} dB</td>
-            <td>{measurement.maxDecibelLevel.toFixed(2)} dB</td>
+            <td style={{ border: '1px solid lime', fontSize: '12px' }}>{measurement.date.toLocaleString()}</td>
+            <td style={{ border: '1px solid lime', fontSize: '12px' }}>{measurement.latitude.toFixed(4)}</td>
+            <td style={{ border: '1px solid lime', fontSize: '12px' }}>{measurement.longitude.toFixed(4)}</td>
+            <td style={{ border: '1px solid lime', fontSize: '12px' }}>{measurement.decibelLevel.toFixed(2)} dB</td>
+            <td style={{ border: '1px solid lime', fontSize: '12px' }}>{measurement.maxDecibelLevel.toFixed(2)} dB</td>
           </tr>
         ))}
       </tbody>
     </table>
-   <footer>
-  <img src="" alt="" className="retro-image" />
-  <a href="doc.x" className="retro-link">
-    🔔🔇🛰️📍 ding dong lat long
-  </a>
+    <footer style={{ display: 'flex', justifyContent: 'left', alignItems: 'center', background: '#960024', color: '#FFFFFF', fontSize: '10px', fontFamily: 'Courier New, monospace', padding: '8px' }}>
+  <a href="https://docs.google.com/document/d/1X8ZxuhIGq0xvETFZUjEZYRVYMGHZOzM_RG3UG4Lsit8/edit?usp=sharing" style={{ color: '#FFFFFF', textDecoration: 'u' }}>🔔🔇🛰️📍 ding dong lat long</a>
 </footer>
-</div>
+  </div>
 );
+
 }
 
 export default App;
