@@ -1,108 +1,114 @@
 import React, { useState, useEffect } from 'react';
 
 function App() {
-  // Set up the state variables
+  // Initialize the state variables
   const [decibelLevel, setDecibelLevel] = useState(0);
   const [maxDecibelLevel, setMaxDecibelLevel] = useState(0);
   const [history, setHistory] = useState([]);
 
-  // Capture the microphone input and compute the loudness
+  // Capture the audio from the microphone
   useEffect(() => {
-    // Initialize the audio context and the microphone input
-    const audioContext = new AudioContext();
-    navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
-      const source = audioContext.createMediaStreamSource(stream);
-      const processor = audioContext.createScriptProcessor(1024, 1, 1);
+    // Check if the microphone is available
+    if ('mediaDevices' in navigator && 'getUserMedia' in navigator.mediaDevices) {
+      // Request access to the microphone
+      navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
+        // Create an audio context
+        const audioContext = new AudioContext();
 
-      // Connect the audio graph
-      source.connect(processor);
-      processor.connect(audioContext.destination);
+        // Create an audio source from the stream
+        const audioSource = audioContext.createMediaStreamSource(stream);
 
-      // Set up the ITU BS.1770 algorithm
-      let momentarySum = 0;
-      let shortTermSum = 0;
-      let integratedSum = 0;
-      let momentaryCount = 0;
-      let shortTermCount = 0;
-      let integratedCount = 0;
-      let sampleRate = audioContext.sampleRate;
-      let momentaryLoudness;
-      let shortTermLoudness;
-      let integratedLoudness;
+        // Create an analyser
+        const analyser = audioContext.createAnalyser();
+        analyser.smoothingTimeConstant = 0.8;
+        analyser.fftSize = 2048;
 
-      // Compute the loudness in real-time
-      processor.onaudioprocess = event => {
-        const input = event.inputBuffer.getChannelData(0);
-        for (let i = 0; i < input.length; i++) {
-          // Compute the momentary loudness
-          momentarySum += input[i] ** 2;
-          momentaryCount++;
-          if (momentaryCount === sampleRate / 10) {
-            momentaryLoudness = Math.sqrt(momentarySum / momentaryCount) * 100;
-            momentarySum = 0;
-            momentaryCount = 0;
+        // Connect the audio source to the analyser
+        audioSource.connect(analyser);
+
+        // Create a data array and a float array to store the audio data
+        const dataArray = new Uint8Array(analyser.frequencyBinCount);
+        const floatArray = new Float32Array(analyser.frequencyBinCount);
+
+        // Start capturing the audio data
+        const capture = () => {
+          // Get the audio data
+          analyser.getByteTimeDomainData(dataArray);
+
+          // Convert the audio data to float data
+          for (let i = 0; i < dataArray.length; i++) {
+            floatArray[i] = (dataArray[i] - 128) / 128.0;
           }
 
-          // Compute the short-term loudness
-          shortTermSum += input[i] ** 2;
-          shortTermCount++;
-          if (shortTermCount === sampleRate) {
-            shortTermLoudness = Math.sqrt(shortTermSum / shortTermCount) * 100;
-            shortTermSum = 0;
-            shortTermCount = 0;
+          // Compute the RMS of the audio data
+          let rms = 0;
+          for (let i = 0; i < floatArray.length; i++) {
+            rms += floatArray[i] * floatArray[i];
           }
+          rms = Math.sqrt(rms / floatArray.length);
 
-          // Compute the integrated loudness
-          integratedSum += shortTermLoudness ** 2;
-          integratedCount++;
-          if (integratedCount === sampleRate * 3) {
-            integratedLoudness = Math.sqrt(integratedSum / integratedCount) * 100;
-            integratedSum = 0;
-            integratedCount = 0;
-          }
+          // Compute the decibel level
+          const decibelLevel = 20 * Math.log10(rms);
 
-          // Update the state variables
-          setDecibelLevel(momentaryLoudness);
-          if (momentaryLoudness > maxDecibelLevel) {
-            setMaxDecibelLevel(momentaryLoudness);
-          }
-        }
-      };
-    });
-  }, []);
+          // Update the state with the new decibel level
+          setDecibelLevel(decibelLevel);
 
-    // Capture the GPS location
-  useEffect(() => {
-    // Check if the GPS is available
-    if ('geolocation' in navigator) {
-      navigator.geolocation.getCurrentPosition(position => {
-        // Update the state with the new measurement
-        setHistory([
-          ...history,
-          {
-            time: new Date(),
-            latitude: position.coords.latitude,
-            longitude: position.coords.longitude,
-            decibelLevel: decibelLevel
+          // Update the maximum decibel level
+          if (decibelLevel > maxDecibelLevel) {
+            setMaxDecibelLevel(decibelLevel);
           }
-        ]);
+        };
+
+        // Start capturing the audio data every 10 milliseconds
+        const intervalId = setInterval(capture, 10);
+
+        // Stop capturing the audio data when the component unmounts
+        return () => clearInterval(intervalId);
       });
     }
-  }, [decibelLevel, history]);
+  }, []);
 
-  // Render the app
+  // Function to handle the "Capture" button click
+  const handleCaptureClick = () => {
+       // Capture the GPS location and add a new measurement to the history
+    if ('geolocation' in navigator) {
+      navigator.geolocation.getCurrentPosition(position => {
+        const measurement = {
+          date: new Date(),
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+          decibelLevel: decibelLevel
+        };
+        setHistory([...history, measurement]);
+      });
+    }
+  };
+
   return (
     <div>
-      <h1>Decibel Level: {decibelLevel} dB</h1>
-      <h1>Maximum Decibel Level: {maxDecibelLevel} dB</h1>
-      <h1>History</h1>
-      <ul>
-        {history.map(measurement => (
-          <li key={measurement.time.toISOString()}>
-            {measurement.time.toLocaleString()}: {measurement.decibelLevel} dB at ({measurement.latitude}, {measurement.longitude})
-          </li>
-        ))}
-      </ul>
+      <div>Decibel Level: {decibelLevel.toFixed(2)} dB</div>
+      <div>Maximum Decibel Level: {maxDecibelLevel.toFixed(2)} dB</div>
+      <button onClick={handleCaptureClick}>Capture</button>
+      <table>
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Latitude</th>
+            <th>Longitude</th>
+            <th>Decibel Level</th>
+          </tr>
+        </thead>
+        <tbody>
+          {history.map(measurement => (
+            <tr key={measurement.date.toISOString()}>
+              <td>{measurement.date.toString()}</td>
+              <td>{measurement.latitude}</td>
+              <td>{measurement.longitude}</td>
+              <td>{measurement.decibelLevel.toFixed(2)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }
