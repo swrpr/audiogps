@@ -6,7 +6,7 @@ function App() {
   const [maxDecibelLevel, setMaxDecibelLevel] = useState(0);
   const [history, setHistory] = useState([]);
   const [decibelLevels, setDecibelLevels] = useState([]);
-
+ 
   // Capture the audio from the microphone
   useEffect(() => {
     // Check if the microphone is available
@@ -27,29 +27,19 @@ function App() {
         // Connect the audio source to the analyser
         audioSource.connect(analyser);
 
-        // Create a data array and a float array to store the audio data
+        // Create a data array to store the audio data
         const dataArray = new Uint8Array(analyser.frequencyBinCount);
-        const floatArray = new Float32Array(analyser.frequencyBinCount);
 
         // Start capturing the audio data
         const capture = () => {
           // Get the audio data
-          analyser.getByteTimeDomainData(dataArray);
+          analyser.getByteFrequencyData(dataArray);
 
-          // Convert the audio data to float data
-          for (let i = 0; i < dataArray.length; i++) {
-            floatArray[i] = (dataArray[i] - 128) / 128.0;
-          }
-
-          // Compute the RMS of the audio data
-          let rms = 0;
-          for (let i = 0; i < floatArray.length; i++) {
-            rms += floatArray[i] * floatArray[i];
-          }
-          rms = Math.sqrt(rms / floatArray.length);
+          // Find the maximum decibel value in the data array
+          const maxDecibel = Math.max(...dataArray);
 
           // Compute the decibel level
-          const decibelLevel = 20 * Math.log10(rms);
+          const decibelLevel = maxDecibel - 128;
 
           // Update the state with the new decibel level
           setDecibelLevel(decibelLevel);
@@ -61,8 +51,8 @@ function App() {
           }
         };
 
-        // Start capturing the audio data every 10 milliseconds
-        const intervalId = setInterval(capture, 10);
+        // Start capturing the audio data every 1000 milliseconds
+        const intervalId = setInterval(capture, 1000);
 
         // Stop capturing the audio data when the component unmounts
         return () => clearInterval(intervalId);
